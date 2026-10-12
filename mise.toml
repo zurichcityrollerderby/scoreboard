@@ -8,3 +8,7 @@ run = "./gradlew run"
 [tasks.release]
 description = "Produce the release files via Gradle"
 run = "./gradlew jreleaserAssemble -PisRelease=true"
+
+[tasks.container]
+description = "Build the container image via Gradle and Podman"
+run = "./gradlew buildContainer"

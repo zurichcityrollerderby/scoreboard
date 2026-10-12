@@ -32,6 +32,7 @@ jobs:
   compat:
     docker:
       - image: cimg/node:24.18.0
+    resource_class: small
     steps:
       - checkout
       - restore_cache:

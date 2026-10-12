@@ -216,6 +216,10 @@ tasks.classes {
     dependsOn(generateVersionProperties)
 }
 
+tasks.test {
+    forkEvery = 1
+}
+
 val installerResources by tasks.registering(Sync::class) {
     dependsOn(tasks.installDist)
     from(layout.buildDirectory.dir("install/CRG Scoreboard")) {

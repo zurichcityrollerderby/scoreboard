@@ -321,13 +321,13 @@ jreleaser {
                     }
                     applicationPackage {
                         appName = "CRG Scoreboard"
-                        appVersion = installerVersion.map { value ->
+                        appVersion.set(installerVersion.map { value ->
                             val components = value.split(".").map { it.toInt() }.toMutableList()
                             if (packagingPlatform.get().startsWith("windows-") && components[0] >= 2000) {
                                 components[0] -= 2000
                             }
                             components.joinToString(".")
-                        }.get()
+                        })
                         vendor = "The CRG developers"
                         licenseFile = "COPYING"
                     }

@@ -54,7 +54,7 @@ The background variable controls the entire page canvas, including the full scor
 
 ```css
 :root {
-  --haunted-panel: linear-gradient(135deg, #2a1019d9, #100b10b8) !important;
+  --haunted-panel: linear-gradient(135deg, #0d1b2bd9, #070c17b8) !important;
 }
 ```
 

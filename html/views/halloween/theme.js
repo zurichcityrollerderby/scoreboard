@@ -2,6 +2,7 @@
 /* Read-only display adapter for the dev branch's JSON/WebSocket API. */
 (function () {
   var mode = document.body.dataset.display;
+  _include('/views/halloween/spiders.js');
   if (_getUrlParam('background') === 'transparent') {
     document.documentElement.style.setProperty('--haunted-background', 'transparent');
   }
@@ -9,7 +10,7 @@
     document.documentElement.style.setProperty('--haunted-background', '#00ff00');
   }
   if (_getUrlParam('venue') === 'true') {
-    document.documentElement.style.setProperty('--haunted-panel', 'linear-gradient(135deg,#2a1019,#100b10)');
+    document.documentElement.style.setProperty('--haunted-panel', 'linear-gradient(135deg,#0d1b2b,#070c17)');
   }
   if (_getUrlParam('motion') === 'off') {
     document.documentElement.style.setProperty('--haunted-motion', 'paused');

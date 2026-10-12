@@ -12,6 +12,7 @@
     document.documentElement.classList.add('haunted-overlay');
     _include('/views/halloween/overlay.css');
     _include('/views/halloween/overlay.js');
+    _include('/views/halloween/spiders.js');
     return;
   } else if (path === '/views/roster' || path === '/views/wb' || path === '/views/box') {
     var root = document.documentElement;
@@ -21,6 +22,7 @@
     if (url.searchParams.get('background') === 'green') root.style.setProperty('--haunted-background', '#00ff00');
     if (url.searchParams.get('motion') === 'off') root.style.setProperty('--haunted-motion', 'paused');
     _include('/views/halloween/auxiliary.css');
+    _include('/views/halloween/spiders.js');
     $(function () { $('#sbIndexLink').attr('href', '/?theme=' + encodeURIComponent(url.searchParams.get('theme'))); });
     return;
   } else {

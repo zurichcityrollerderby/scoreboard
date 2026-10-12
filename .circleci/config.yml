@@ -1,4 +1,36 @@
 version: 2.1
+orbs:
+  win: circleci/windows@5.1.0
+commands:
+  assemble-installers:
+    steps:
+      - restore_cache:
+          keys:
+            - gradle-release-v1-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-
+            - gradle-release-v1-{{ arch }}-
+      - run:
+          name: Assemble installers
+          shell: bash
+          command: ./gradlew --no-daemon jreleaserAssemble -PisRelease=true -PinstallerVersion="${CIRCLE_TAG#v}" --console=plain
+      - save_cache:
+          key: gradle-release-v1-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-
+          paths:
+            - ~/.gradle/caches
+            - ~/.gradle/wrapper
+      - run:
+          name: Collect installers
+          shell: bash
+          command: |
+            mkdir -p installers
+            for extension in dmg deb rpm exe; do
+              cp build/jreleaser/assemble/scoreboard/jpackage/*.$extension installers/ 2>/dev/null || true
+            done
+            ls -l installers
+            test -n "$(ls -A installers)"
+      - persist_to_workspace:
+          root: .
+          paths:
+            - installers
 jobs:
   build:
     docker:
@@ -45,8 +77,79 @@ jobs:
           paths:
             - ~/.npm
       - run: npm run compat
+  installers-linux:
+    docker:
+      - image: cimg/openjdk:17.0
+    steps:
+      - checkout
+      - run:
+          name: Install Linux packaging tools
+          command: sudo apt-get update && sudo apt-get install -y fakeroot rpm
+      - assemble-installers
+  installers-macos:
+    macos:
+      xcode: 16.4.0
+    resource_class: m4pro.medium
+    steps:
+      - checkout
+      - run:
+          name: Install Java
+          command: |
+            brew install --cask temurin@17
+            echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 17)' >> "$BASH_ENV"
+      - assemble-installers
+  installers-windows:
+    executor:
+      name: win/server-2022
+      shell: bash.exe
+    steps:
+      - checkout
+      - run:
+          name: Install Java and WiX 3
+          command: |
+            choco install temurin17 wixtoolset -y --no-progress
+            echo 'export JAVA_HOME="$(ls -d /c/Program\ Files/Eclipse\ Adoptium/jdk-17* | head -n1)"' >> "$BASH_ENV"
+            echo 'export PATH="/c/Program Files (x86)/WiX Toolset v3.14/bin:$PATH"' >> "$BASH_ENV"
+      - assemble-installers
+  release:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Verify installer formats
+          command: |
+            ls -l installers
+            for extension in dmg deb rpm exe; do
+              if ! ls installers/*.$extension > /dev/null 2>&1; then
+                echo "Missing $extension installer"
+                exit 1
+              fi
+            done
+      - store_artifacts:
+          path: installers
+          destination: installers
 workflows:
   checks:
     jobs:
       - build
       - compat
+  release:
+    jobs:
+      - installers-linux:
+          filters: &tags
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - installers-macos:
+          filters: *tags
+      - installers-windows:
+          filters: *tags
+      - release:
+          requires:
+            - installers-linux
+            - installers-macos
+            - installers-windows
+          filters: *tags

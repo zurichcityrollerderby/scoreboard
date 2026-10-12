@@ -1,0 +1,25 @@
+/* SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later */
+.web-art { display: block; width: 100%; height: 100%; }
+.spider-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.spider-unit {
+  position: absolute; left: 26%; width: 20%; height: 100%; top: -100%;
+  display: flex; flex-direction: column; color: #8fb5ad;
+  animation: spider-drop var(--spider-duration, 18s) ease-in-out infinite;
+  animation-delay: var(--spider-delay, 0s);
+  animation-play-state: var(--haunted-motion, running) !important;
+}
+.spider-thread { flex: 1; width: 1px; margin: 0 auto; background: currentColor; opacity: .7; }
+.spider { flex: none; display: block; width: 100%; height: auto; }
+.header-web { right: auto; width: 66px; }
+.header-web .spider-unit { left: 30%; width: 22px; }
+@keyframes spider-drop {
+  0%, 8% { transform: translateY(0); }
+  22% { transform: translateY(80%); }
+  27% { transform: translateY(70%); }
+  32% { transform: translateY(82%); }
+  38% { transform: translateY(72%); }
+  55% { transform: translateY(72%); }
+  68% { transform: translateY(0); }
+  100% { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .spider-layer { display: none; } }

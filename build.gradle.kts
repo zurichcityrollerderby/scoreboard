@@ -329,7 +329,7 @@ jreleaser {
                     }
                     applicationPackage {
                         appName = "CRG Scoreboard"
-                        appVersion = nativeInstallerVersion.get()
+                        appVersion.set(nativeInstallerVersion)
                         vendor = "The CRG developers"
                         licenseFile = "COPYING"
                     }

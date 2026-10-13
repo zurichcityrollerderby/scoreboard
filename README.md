@@ -115,12 +115,17 @@ Bundled web files are refreshed on launch.
 Existing configuration and user data are preserved.
 
 Pushing a numeric version tag such as `v2027.1` runs the release workflow.
-It builds the installers on macOS, Linux, and Windows.
+A first job builds the executable JAR and distribution ZIP and uploads them with the generated Dockerfile.
+It also creates the GitHub release and uploads the executable JAR.
+The installer jobs download these artifacts and build native packages on macOS, Linux, and Windows without compiling the application again.
 Linux and macOS installers are built for both AMD64 and ARM64.
-A final job collects all four formats and publishes them with the executable JAR through JReleaser.
-A parallel matrix job builds the container for `linux/amd64` and `linux/arm64` using Podman on native runners.
-Publication waits for both container builds to succeed.
+Each native builder uploads its installers directly to the release when it finishes.
+A separate job downloads the same artifacts and builds the container for `linux/amd64` and `linux/arm64` using Docker Buildx and QEMU.
+It pushes both images and their manifest to `ghcr.io/<owner>/scoreboard` under the full release tag, such as `v2027.2-alpha1`.
+Pulling that tag selects the matching architecture automatically.
+The release is visible immediately, and installers appear as their builds finish.
 The workflow uses `GITHUB_TOKEN` with write access to repository contents for publication.
+Container publishing uses `GITHUB_TOKEN` with write access to packages.
 Tags such as `v2027.2-alpha1` publish a GitHub prerelease.
 Any nonempty suffix after a numeric calendar version marks it as a prerelease.
 Installer versions omit the suffix, so `v2027.2-alpha1` uses `2027.2` for packaging.

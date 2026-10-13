@@ -393,6 +393,9 @@ jreleaser {
         github {
             enabled.set(!localContainerBuild)
             tagName = "{{projectVersion}}"
+            prerelease {
+                pattern = "v?[0-9]{4}\\.[0-9]+(?:\\.[0-9]+)?-.+"
+            }
         }
     }
 

@@ -132,6 +132,10 @@ A final job collects all four formats and publishes them with the executable JAR
 A parallel matrix job builds the container for `linux/amd64` and `linux/arm64` using Podman on native runners.
 Publication waits for both container builds to succeed.
 The workflow uses `GITHUB_TOKEN` with write access to repository contents for publication.
+Tags such as `v2027.2-alpha1` publish a GitHub prerelease.
+Any nonempty suffix after a numeric calendar version marks it as a prerelease.
+Installer versions omit the suffix, so `v2027.2-alpha1` uses `2027.2` for packaging.
+The application version retains the full tag.
 
 
 ## Container build

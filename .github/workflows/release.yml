@@ -44,6 +44,7 @@ jobs:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           installer_version="${GITHUB_REF_NAME#v}"
+          installer_version="${installer_version%%-*}"
           ./gradlew jreleaserAssemble -PisRelease=true -PinstallerVersion="$installer_version"
       - name: Upload installers
         uses: actions/upload-artifact@v4

@@ -116,6 +116,7 @@ Existing configuration and user data are preserved.
 
 Pushing a numeric version tag such as `v2027.1` runs the release workflow.
 It builds the installers on macOS, Linux, and Windows.
+Linux and macOS installers are built for both AMD64 and ARM64.
 A final job collects all four formats and publishes them with the executable JAR through JReleaser.
 The workflow uses `GITHUB_TOKEN` with write access to repository contents for publication.
 

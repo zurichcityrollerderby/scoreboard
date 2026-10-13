@@ -56,8 +56,41 @@ jobs:
             build/jreleaser/assemble/scoreboard/jpackage/*.rpm
             build/jreleaser/assemble/scoreboard/jpackage/*.exe
 
+  containers:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            os: ubuntu-22.04
+          - arch: arm64
+            os: ubuntu-22.04-arm
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Prepare container build context
+        run: ./gradlew prepareContainer -PisRelease=true
+      - name: Build container
+        env:
+          CONTAINER_ARCH: ${{ matrix.arch }}
+        run: |
+          podman build \
+            --platform "linux/${CONTAINER_ARCH}" \
+            --tag "localhost/crg/scoreboard:${GITHUB_REF_NAME}-${CONTAINER_ARCH}" \
+            build/jreleaser/prepare/container/docker
+
   release:
-    needs: installers
+    needs: [installers, containers]
     runs-on: ubuntu-22.04
     permissions:
       contents: write

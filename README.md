@@ -126,7 +126,7 @@ Bundled web files are refreshed on launch.
 Existing configuration and user data are preserved.
 
 Pushing a numeric version tag such as `v2027.1` runs the release workflow.
-A first job builds the executable JAR and distribution ZIP and uploads them with the generated Dockerfile.
+A first job runs the build checks and tests, builds the executable JAR and distribution ZIP, and uploads them with the generated Dockerfile.
 It also creates the GitHub release and uploads the executable JAR.
 The installer jobs download these artifacts and build native packages on macOS, Linux, and Windows without compiling the application again.
 Linux and macOS installers are built for both AMD64 and ARM64.

@@ -105,6 +105,11 @@ application {
         into("html")
         includeEmptyDirs = true
     }
+    // Bundle the shipped theme entry while keeping uploaded custom themes excluded.
+    applicationDistribution.from("html/themes/custom") {
+        include("Halloween.js")
+        into("html/themes/custom")
+    }
     applicationDistribution.from("config") {
         include("**/*")
         exclude("**/.gitignore", "autosave/**/*")
@@ -318,7 +323,7 @@ jreleaser {
 
         inceptionYear = "2008"
         authors = listOf("Mr Temper", "The CRG developers")
-        copyright = "2008-2012 Mr Temper, since 2012 The CRG developers"
+        copyright = "2008-2012 Mr Temper, since 2012 The CRG developers, 2026 Zurich City Roller Derby Stream Team"
         license = "Apache-2.0-or-GPL-3.0-or-later"
 
         links {

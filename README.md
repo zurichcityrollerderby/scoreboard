@@ -76,17 +76,27 @@ stay in `src/`, tests stay in `tests/`, and classpath properties files stay besi
 the sources in `src/`. Explicit source sets preserve this layout; generated
 version properties and build outputs are written only under `build/`.
 
+In Eclipse, import the repository using **File > Import > Gradle > Existing Gradle Project**.
+Use **Gradle > Refresh Gradle Project** from the project's context menu to refresh dependencies and regenerate `.classpath`.
+Alternatively, generate the Eclipse project files from the command line:
+
+```shell
+./gradlew eclipse
+```
+
+The `.classpath` file is generated locally and ignored by Git.
+Dependencies come from Maven Central, so no checked-in JARs are needed.
+
 Application distributions include the existing `html/` and `config/` directories
 and Gradle-generated launchers in `bin/`. The launchers change to the distribution
 root before starting the server. ZIP and TAR distributions are in
 `build/distributions/`; a standalone executable JAR is in `build/libs/` and needs
 `html/` and `config/` beside its working directory.
 
-Ant and its checked-in dependencies remain available during the transition.
-Gradle resolves dependencies from Maven Central, using the same dependency
-versions as the current Ant build. The Gradle runtime requires Java 17.
+Gradle replaces the Ant build and resolves dependencies from Maven Central.
+The Gradle runtime requires Java 17.
 
-Gradle generates the same version metadata fields as Ant: `release`,
+Gradle generates the version metadata fields `release`,
 `release.commit`, `release.user`, `release.time`, and `release.host`. Development
 builds append a timestamp to the Git description; use `-PisRelease=true` when
 building a release to omit that suffix. The executable JAR keeps one entry per

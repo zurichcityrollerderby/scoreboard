@@ -9,24 +9,84 @@ permissions:
   contents: read
 
 jobs:
-  installers:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-22.04, macos-14, windows-2022]
-    runs-on: ${{ matrix.os }}
+  prepare:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
+      - name: Build and verify release artifacts
+        run: ./gradlew build prepareContainer -PisRelease=true
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-artifacts
+          if-no-files-found: error
+          path: |
+            build/libs/*.jar
+            !build/libs/*-plain.jar
+            build/jreleaser/prepare/container/docker/
+      - name: Create release and upload portable artifacts
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            build/libs/scoreboard-${{ github.ref_name }}.jar
+            build/distributions/CRG Scoreboard-${{ github.ref_name }}.zip
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          make_latest: ${{ contains(github.ref_name, '-') && 'false' || 'legacy' }}
+
+  installers:
+    needs: prepare
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            files: |
+              *.deb
+              *.rpm
+          - os: ubuntu-22.04-arm
+            files: |
+              *.deb
+              *.rpm
+          - os: macos-15
+            files: '*.dmg'
+          - os: macos-15-intel
+            files: '*.dmg'
+          - os: windows-2022
+            files: '*.exe'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+      - name: Download release artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: release-artifacts
+          path: build
       - name: Install Linux packaging tools
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y fakeroot rpm
@@ -44,51 +104,51 @@ jobs:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           installer_version="${GITHUB_REF_NAME#v}"
-          ./gradlew jreleaserAssemble -PisRelease=true -PinstallerVersion="$installer_version"
-      - name: Upload installers
-        uses: actions/upload-artifact@v4
+          installer_version="${installer_version%%-*}"
+          ./gradlew jreleaserAssemble -PisRelease=true -PinstallerVersion="$installer_version" -PprebuiltArtifacts=true -x assembleDist -x shadowJar -x installDist
+      - name: Upload installers to release
+        uses: softprops/action-gh-release@v3
         with:
-          name: installers-${{ matrix.os }}
-          if-no-files-found: error
-          path: |
-            build/jreleaser/assemble/scoreboard/jpackage/*.dmg
-            build/jreleaser/assemble/scoreboard/jpackage/*.deb
-            build/jreleaser/assemble/scoreboard/jpackage/*.rpm
-            build/jreleaser/assemble/scoreboard/jpackage/*.exe
+          working_directory: build/jreleaser/assemble/scoreboard/jpackage
+          files: ${{ matrix.files }}
+          fail_on_unmatched_files: true
 
-  release:
-    needs: installers
+  containers:
+    needs: prepare
     runs-on: ubuntu-22.04
     permissions:
-      contents: write
+      contents: read
+      packages: write
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
+      - name: Download release artifacts
+        uses: actions/download-artifact@v7
         with:
-          fetch-depth: 0
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-      - name: Download installers
-        uses: actions/download-artifact@v4
-        with:
-          pattern: installers-*
-          merge-multiple: true
-          path: build/native-release
-      - name: Verify installer formats
+          name: release-artifacts
+          path: build
+      - name: Set container image name
+        id: image
         shell: bash
         run: |
-          for extension in dmg deb rpm exe; do
-            if ! compgen -G "build/native-release/*.$extension" > /dev/null; then
-              echo "Missing $extension installer"
-              exit 1
-            fi
-          done
-      - name: Release with JReleaser
-        env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew jreleaserRelease -PisRelease=true -PnativeRelease=true
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          echo "name=$image" >> "$GITHUB_OUTPUT"
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm64
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build and push multi-platform container
+        uses: docker/build-push-action@v7
+        with:
+          context: build/jreleaser/prepare/container/docker
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.image.outputs.name }}:${{ github.ref_name }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}

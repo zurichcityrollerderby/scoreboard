@@ -36,10 +36,12 @@ jobs:
             build/libs/*.jar
             !build/libs/*-plain.jar
             build/jreleaser/prepare/container/docker/
-      - name: Create release and upload executable JAR
+      - name: Create release and upload portable artifacts
         uses: softprops/action-gh-release@v3
         with:
-          files: build/libs/scoreboard-${{ github.ref_name }}.jar
+          files: |
+            build/libs/scoreboard-${{ github.ref_name }}.jar
+            build/distributions/CRG Scoreboard-${{ github.ref_name }}.zip
           fail_on_unmatched_files: true
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-') }}

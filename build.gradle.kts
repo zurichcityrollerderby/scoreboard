@@ -411,6 +411,13 @@ jreleaser {
     }
 
     distributions {
+        create("universal") {
+            active = Active.ALWAYS
+            distributionType = org.jreleaser.model.Distribution.DistributionType.JAVA_BINARY
+            artifact {
+                path.set(tasks.distZip.flatMap { it.archiveFile })
+            }
+        }
         create("app") {
             active = Active.ALWAYS
             distributionType = org.jreleaser.model.Distribution.DistributionType.SINGLE_JAR

@@ -52,9 +52,14 @@ html body { font-family: Arial, Helvetica, sans-serif; color: var(--haunted-text
 .review.empty { opacity: .4; }
 .active-timeout { outline: 2px solid white; outline-offset: 2px; }
 /* Full scoreboard: large type, with separate panels suitable for OBS. */
-.board-title { position: absolute; top: 3%; left: 3%; right: 3%; display: flex; justify-content: space-between; font-size: 1.4cqw; font-weight: bold; }
-.board-title span { padding: .6cqw 1cqw; background: #08111d; border-radius: .4cqw; }
-.board-grid { position: absolute; inset: 11% 3% 24%; display: grid; grid-template-columns: 1fr .78fr 1fr; gap: 1.2cqw; }
+.board-title { position: absolute; top: 3%; left: 3%; right: 3%; display: flex; align-items: flex-start; justify-content: space-between; font-size: 1.4cqw; font-weight: bold; }
+.board-title > span { padding: .6cqw 1cqw; background: #08111d; border-radius: .4cqw; }
+.board-title .board-venue { text-transform: uppercase; line-height: 1.15; }
+.board-title .board-tournament { display: block; font-size: 1.5em; }
+.board-title .board-location { display: block; }
+.board-title > span:last-child { margin-left: auto; }
+.board-title [hidden] { display: none; }
+.board-grid { position: absolute; inset: 13% 3% 24%; display: grid; grid-template-columns: 1fr .78fr 1fr; gap: 1.2cqw; }
 .board-team { position: relative; text-align: center; padding: 2cqw 1cqw 1cqw; overflow: hidden; }
 .board-kicker { font-size: 1.3cqw; font-weight: bold; letter-spacing: .1cqw; }
 .board-team h2 { font-size: 3.2cqw; line-height: 1.08; height: 7cqw; margin: .6cqw 0 0; overflow-wrap: anywhere; }
@@ -129,7 +134,7 @@ html body { font-family: Arial, Helvetica, sans-serif; color: var(--haunted-text
 .inter-bat.satellite.right { left: auto; right: 5%; top: 14%; transform: rotate(14deg); }
 /* A real 4:3 viewport (including 1024x768) gets larger labels and compact stacking. */
 @media (max-aspect-ratio: 4/3) {
-  .board-grid { inset: 10% 2% 25%; gap: 1cqw; }
+  .board-grid { inset: 12% 2% 25%; gap: 1cqw; }
   .board-team { padding-top: 2.8cqw; }
   .board-team h2 { font-size: 3.6cqw; height: 8cqw; }
   .board-score { font-size: 15cqw; }

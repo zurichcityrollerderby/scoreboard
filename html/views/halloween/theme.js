@@ -118,8 +118,27 @@
           all('.inter-score strong', inter)[index].textContent = score;
         }
       });
+      // Tournament, venue, city, and state are optional event info; state only qualifies a city.
+      var tournament = String(value('ScoreBoard.CurrentGame.EventInfo(Tournament)') || '').trim();
+      var venue = String(value('ScoreBoard.CurrentGame.EventInfo(Venue)') || '').trim();
+      var city = String(value('ScoreBoard.CurrentGame.EventInfo(City)') || '').trim();
+      var state = String(value('ScoreBoard.CurrentGame.EventInfo(State)') || '').trim();
+      var locationParts = [];
+      if (venue) locationParts.push(venue);
+      if (city) locationParts.push(city);
+      if (city && state) locationParts.push(state);
+      var locationLabel = locationParts.join(', ');
+      all('.board-venue').forEach(function (element) {
+        var tournamentElement = element.querySelector('.board-tournament');
+        var locationElement = element.querySelector('.board-location');
+        tournamentElement.textContent = tournament;
+        tournamentElement.hidden = !tournament;
+        locationElement.textContent = locationLabel;
+        locationElement.hidden = !locationLabel;
+        element.hidden = !tournament && !locationLabel;
+      });
       // Both teams need a live lead label; the original away mockup omitted one.
-      text('.board-title span:last-child', (isTrue(value('ScoreBoard.CurrentGame.InOvertime')) ? 'OVERTIME' : 'PERIOD ' + value('ScoreBoard.CurrentGame.Clock(Period).Number')));
+      text('.board-title > span:last-child', (isTrue(value('ScoreBoard.CurrentGame.InOvertime')) ? 'OVERTIME' : 'PERIOD ' + value('ScoreBoard.CurrentGame.Clock(Period).Number')));
       var mainClock = all('.board-clock');
       if (mainClock.length) {
         text('.board-kicker', 'PERIOD ' + value('ScoreBoard.CurrentGame.Clock(Period).Number'), mainClock[0]);
@@ -149,7 +168,7 @@
     }
     // CurrentGame follows the game selected in the operator UI, including game changes.
     var game = 'ScoreBoard.CurrentGame';
-    var paths = ['InJam', 'OfficialScore', 'ClockDuringFinalScore', 'InOvertime', 'TimeoutOwner', 'OfficialReview', 'Rule(Period.Number)'].map(function (field) { return game + '.' + field; });
+    var paths = ['InJam', 'OfficialScore', 'ClockDuringFinalScore', 'InOvertime', 'TimeoutOwner', 'OfficialReview', 'Rule(Period.Number)', 'EventInfo(Tournament)', 'EventInfo(Venue)', 'EventInfo(City)', 'EventInfo(State)'].map(function (field) { return game + '.' + field; });
     [1, 2].forEach(function (id) {
       ['Name', 'AlternateName(' + nameContext + ')', 'Score', 'JamScore', 'DisplayLead', 'StarPass', 'Lost', 'Timeouts', 'OfficialReviews', 'RetainedOfficialReview'].forEach(function (field) {
         paths.push(game + '.Team(' + id + ').' + field);

@@ -118,6 +118,19 @@ application {
     }
 }
 
+// Standalone package containing only the Halloween theme, ready to extract into an installation.
+val halloweenThemeZip by tasks.registering(Zip::class) {
+    group = "distribution"
+    description = "Packages only the Halloween theme."
+    archiveBaseName.set("crg-scoreboard-halloween-theme")
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+    from("html") {
+        include("themes/custom/Halloween.js", "views/halloween/**")
+        exclude("**/.*", "**/.*/**")
+        into("html")
+    }
+}
+
 // Give the plain and executable JARs distinct paths so they cannot overwrite each other.
 tasks.jar {
     archiveClassifier.set("plain")

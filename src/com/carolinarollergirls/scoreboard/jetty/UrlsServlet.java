@@ -5,9 +5,11 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -22,10 +24,15 @@ import org.eclipse.jetty.server.Server;
 
 /** This Servlet provides the list of URLs of the server for display on the frontend */
 public class UrlsServlet extends HttpServlet {
-    public UrlsServlet(Server s) { server = s; }
+    public UrlsServlet(Server s, String discoveryName) { server = s;
+        this.discoveryName = discoveryName;
+    }
 
     public Set<String> getUrls() throws MalformedURLException, SocketException {
-        Set<String> urls = new TreeSet<>();
+        Set<String> urls = new TreeSet<>(Comparator
+            .comparing((String url) -> discoveryName == null ||
+                       !(discoveryName + ".local").equalsIgnoreCase(URI.create(url).getHost()))
+            .thenComparing(Comparator.naturalOrder()));
         for (Connector c : server.getConnectors()) {
             if (c instanceof NetworkConnector) {
                 addURLs(urls, ((NetworkConnector) c).getHost(), ((NetworkConnector) c).getLocalPort());
@@ -43,6 +50,9 @@ public class UrlsServlet extends HttpServlet {
     }
 
     protected void addURLs(Set<String> urls, String host, int port) throws MalformedURLException, SocketException {
+        if (discoveryName != null) {
+            addURL(urls, discoveryName + ".local", port);
+        }
         if (null == host) {
             for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
                 for (InetAddress addr : Collections.list(iface.getInetAddresses())) {
@@ -78,4 +88,5 @@ public class UrlsServlet extends HttpServlet {
     }
 
     protected Server server;
+    private final String discoveryName;
 }

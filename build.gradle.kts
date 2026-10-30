@@ -226,9 +226,20 @@ tasks.test {
 }
 
 val installerResources by tasks.registering(Sync::class) {
-    dependsOn(tasks.installDist)
-    from(layout.buildDirectory.dir("install/CRG Scoreboard")) {
-        exclude("bin/**", "lib/**")
+    if (providers.gradleProperty("prebuiltArtifacts").map { it.toBoolean() }.orElse(false).get()) {
+        from(zipTree(layout.buildDirectory.file("jreleaser/prepare/container/docker/assembly/scoreboard-container.zip"))) {
+            include("scoreboard/**")
+            exclude("scoreboard/bin/**", "scoreboard/lib/**")
+            eachFile {
+                relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+            }
+            includeEmptyDirs = false
+        }
+    } else {
+        dependsOn(tasks.installDist)
+        from(layout.buildDirectory.dir("install/CRG Scoreboard")) {
+            exclude("bin/**", "lib/**")
+        }
     }
     into(layout.buildDirectory.dir("installer-resources"))
 }
@@ -395,10 +406,20 @@ jreleaser {
         github {
             enabled.set(!localContainerBuild)
             tagName = "{{projectVersion}}"
+            prerelease {
+                pattern = "v?[0-9]{4}\\.[0-9]+(?:\\.[0-9]+)?-.+"
+            }
         }
     }
 
     distributions {
+        create("universal") {
+            active = Active.ALWAYS
+            distributionType = org.jreleaser.model.Distribution.DistributionType.JAVA_BINARY
+            artifact {
+                path.set(tasks.distZip.flatMap { it.archiveFile })
+            }
+        }
         create("app") {
             active = Active.ALWAYS
             distributionType = org.jreleaser.model.Distribution.DistributionType.SINGLE_JAR
@@ -459,6 +480,12 @@ tasks.register("prepareContainer") {
     group = "distribution"
     description = "Prepare the container build context using JReleaser."
     dependsOn("jreleaserPrepare")
+    doLast {
+        copy {
+            from(containerDistZip.flatMap { it.archiveFile })
+            into(layout.buildDirectory.dir("jreleaser/prepare/container/docker/assembly"))
+        }
+    }
 }
 
 tasks.register("buildContainer") {

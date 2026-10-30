@@ -1,0 +1,14 @@
+[tools]
+java = "temurin-17"
+
+[tasks.run]
+description = "Run the scoreboard via Gradle"
+run = "./gradlew run"
+
+[tasks.release]
+description = "Produce the release files via Gradle"
+run = "./gradlew jreleaserAssemble -PisRelease=true"
+
+[tasks.container]
+description = "Build the container image via Gradle and Podman"
+run = "./gradlew buildContainer"

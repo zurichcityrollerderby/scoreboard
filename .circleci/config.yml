@@ -64,6 +64,9 @@ jobs:
       - store_artifacts:
           path: build/distributions
           destination: distributions
+      - store_artifacts:
+          path: build/distributions/scoreboard-halloween-theme.zip
+          destination: scoreboard-halloween-theme.zip
   compat:
     docker:
       - image: cimg/node:24.18.0

@@ -286,6 +286,21 @@ val nativeInstallerVersion = installerVersion.map { value ->
 }
 
 
+val halloweenThemeZip by tasks.registering(Zip::class) {
+    group = "distribution"
+    description = "Packages only the Halloween theme for an existing Scoreboard installation."
+    archiveFileName.set("scoreboard-halloween-theme.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+    from(".") {
+        include("html/themes/custom/Halloween.js", "html/views/halloween/**")
+    }
+    includeEmptyDirs = false
+}
+
+tasks.assemble {
+    dependsOn(halloweenThemeZip)
+}
+
 val containerDistZip by tasks.registering(Zip::class) {
     dependsOn(tasks.installDist)
     archiveFileName.set("scoreboard-container.zip")

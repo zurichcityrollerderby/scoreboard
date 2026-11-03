@@ -7,6 +7,11 @@ It does not use the legacy master XML API.
 
 ## Install and open
 
+Run `./gradlew halloweenThemeZip` to create `build/distributions/scoreboard-halloween-theme.zip`.
+The regular `./gradlew build` also creates this archive.
+It contains only `html/themes/custom/Halloween.js` and the files in `html/views/halloween/`, preserving their installation paths.
+It requires an existing Scoreboard installation.
+
 1. Extract the package into your scoreboard installation folder.
    The result must include `html/views/halloween/scoreboard.html` and `html/themes/custom/Halloween.js`.
    Both are included in the package.

@@ -1,0 +1,144 @@
+/* SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later */
+/* Scoped to display pages; shared operator components retain their normal appearance. */
+:root.haunted-auxiliary {
+  --haunted-background: radial-gradient(ellipse at 50% 28%, #123340, #0a1625 60%, #05080f);
+  --haunted-motion: running;
+  --haunted-panel: linear-gradient(135deg, #0d1b2bd9, #070c17b8);
+  --haunted-blood: #e8821e;
+  --haunted-text: #d2f0e6;
+  --outside-bg: transparent;
+  --outside-fg: var(--haunted-text);
+  --group-bg: #0c1a28;
+  --group-fg: var(--haunted-text);
+  --header-bg: #12383f;
+  --header-fg: var(--haunted-text);
+  --subheader-bg: #0f2a33;
+  --subheader-fg: var(--haunted-text);
+  --table-row-stripe: #0e2030;
+  --segment-gap: 12px;
+  --group-gap: 12px;
+  --group-border-top: 1px solid #2f6a6a;
+}
+html.haunted-auxiliary {
+  min-height: 100vh;
+  background: var(--haunted-background);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+.haunted-auxiliary body { background: transparent; }
+.haunted-auxiliary body { margin: 12px; color: var(--haunted-text); font-family: Arial, Helvetica, sans-serif; }
+.haunted-auxiliary .sbSegment { min-width: 0; border: 2px solid var(--haunted-blood); }
+.haunted-auxiliary .sbGroup { box-sizing: border-box; }
+.haunted-auxiliary .sbHeader { border-bottom: 3px solid var(--haunted-blood); }
+/* Artwork lives in header margins, leaving all live values unobstructed. */
+.haunted-roster #RosterTab .sbHeader.Name,
+.haunted-whiteboard .PltInput > .Team .Teamname,
+.haunted-clocks #PenaltyList > .sbHeader {
+  position: relative; padding: 10px 100px 10px 52px; font-size: clamp(26px, 3.2vw, 50px);
+  line-height: 1.15; font-weight: bold; overflow-wrap: anywhere;
+  background-image: url('web.svg'); background-repeat: no-repeat; background-size: 66px; background-position: top left;
+}
+.haunted-hdr-art { position: absolute; inset: 0; pointer-events: none; }
+.haunted-hdr-art .pumpkin { position: absolute; left: 10px; top: calc(50% - 16px); width: 32px; height: 32px; animation: haunted-aux-ember 10s ease-in-out infinite; --haunted-eye-delay: 0s; }
+.haunted-hdr-art .ghost { position: absolute; right: 56px; top: calc(50% - 14px); width: 28px; height: 28px; color: var(--haunted-text); animation: haunted-aux-ghost 8s ease-in-out infinite; }
+.haunted-hdr-art .bat { position: absolute; right: 8px; top: calc(50% - 10px); width: 40px; height: 20px; color: #3f8179; animation: haunted-aux-bat 5s ease-in-out infinite; }
+.haunted-hdr-art .pumpkin-eyes { fill: #ffe98c; animation: haunted-aux-eyes 18s steps(1, end) infinite; }
+.haunted-hdr-art .bat-eyes { stroke: #ffde8c; opacity: .3; animation: haunted-aux-bat-eyes 19s linear infinite; }
+.haunted-hdr-art .pumpkin, .haunted-hdr-art .ghost, .haunted-hdr-art .bat, .haunted-hdr-art .pumpkin-eyes, .haunted-hdr-art .bat-eyes { animation-play-state: var(--haunted-motion) !important; }
+@keyframes haunted-aux-bat { 0%, 100% { transform: none; } 25% { transform: translate(2px, -3px) rotate(-5deg); } 50% { transform: translate(-1px, 1px) rotate(3deg); } 75% { transform: translate(2px, -2px) rotate(-3deg); } }
+@keyframes haunted-aux-ghost { 0%, 100% { opacity: .5; transform: none; } 50% { opacity: .95; transform: translateY(-3px); } }
+@keyframes haunted-aux-eyes { 0%, 76%, 78%, 81%, 84%, 100% { fill: #ffe98c; filter: drop-shadow(0 0 3px #ffd05f); } 77%, 80%, 83% { fill: #ff263f; filter: drop-shadow(0 0 4px #f9163f); } }
+@keyframes haunted-aux-bat-eyes { 0%, 72%, 79%, 100% { opacity: .3; } 73%, 75%, 77% { opacity: 1; stroke: #ff4051; } 74%, 76%, 78% { opacity: .1; } }
+@keyframes haunted-aux-ember { 50% { filter: drop-shadow(0 0 4px #ff7a1a80); } }
+@media (prefers-reduced-motion: reduce) {
+  .haunted-hdr-art * { animation: none !important; }
+}
+/* Roster: keep team identity, pronouns, roles, and officials in the native tables. */
+.haunted-roster #sbIndexLink { float: none; display: block; width: max-content; margin-left: auto; margin-bottom: 8px; color: var(--haunted-text); background: #0f2a33; padding: 4px 10px; }
+.haunted-roster body > br { display: none; }
+.haunted-roster #RosterTab .sbSegmentGroup { align-items: flex-start; }
+.haunted-roster #RosterTab .League { padding: 8px; gap: 10px; }
+.haunted-roster #RosterTab .Logo { object-fit: contain; }
+.haunted-roster #RosterTab .Names { font-size: clamp(16px, 1.5vw, 24px); }
+.haunted-roster #RosterTab .Names .Label { color: #a8dccd; }
+.haunted-roster #RosterTab .Skaters td,
+.haunted-roster #RosterTab .Officials td { padding: 4px 6px; font-size: clamp(18px, 2vw, 30px); line-height: 1.2; overflow-wrap: anywhere; }
+.haunted-roster #RosterTab .Skaters .RosterNumber { font-size: clamp(22px, 2.2vw, 36px); font-weight: bold; font-variant-numeric: tabular-nums; white-space: nowrap; overflow-wrap: normal; }
+.haunted-roster #RosterTab .Skaters .Pronouns,
+.haunted-roster #RosterTab .Skaters .Flags { font-size: clamp(16px, 1.6vw, 24px); }
+.haunted-roster #RosterTab .Skaters th,
+.haunted-roster #RosterTab .Officials th { padding: 8px 6px; }
+.haunted-roster #RosterTab .Skaters tr[role='Jammer'] > td,
+.haunted-roster #RosterTab .Skaters tr[role='Pivot'] > td,
+.haunted-roster #RosterTab .Skaters tr[role='Blocker'] > td { color: #091b0d; }
+/* Whiteboard: two teams at VGA, with compact code/jam rows and broad number columns. */
+.haunted-whiteboard body.sbSegmentGroup { align-items: flex-start; }
+.haunted-whiteboard body > div { min-width: 0; }
+.haunted-whiteboard .sbSheets { padding: 0; color: var(--haunted-text); }
+.haunted-whiteboard .PltInput > .Team { width: 100%; border-spacing: 0; table-layout: auto; }
+.haunted-whiteboard .PltInput > .Team td { border-color: #3a7373; }
+.haunted-whiteboard .PltInput > .Team thead td { background-color: #12383f; color: var(--haunted-text); }
+.haunted-whiteboard .PltInput > .Team tr.Code { height: clamp(25px, 2vw, 36px); }
+.haunted-whiteboard .PltInput > .Team tr.Jam { height: clamp(18px, 1.3vw, 24px); }
+.haunted-whiteboard .PltInput > .Team .Number { width: 14%; white-space: nowrap; font-size: clamp(24px, 2.5vw, 42px); font-weight: bold; font-variant-numeric: tabular-nums; }
+.haunted-whiteboard .PltInput > .Team .Total { width: 8%; font-size: clamp(22px, 2.2vw, 36px); font-weight: bold; }
+.haunted-whiteboard .PltInput > .Team tr.Code .Penalty { font-size: clamp(20px, 1.6vw, 30px); font-weight: bold; }
+.haunted-whiteboard .PltInput > .Team tr.Jam .Penalty { font-size: clamp(14px, 1vw, 20px); }
+.haunted-whiteboard .PltInput > .Team .Number:not(.OnTrack),
+.haunted-whiteboard .PltInput > .Team .Penalty,
+.haunted-whiteboard .PltInput > .Team .Total { background-color: #0c1a28; color: var(--haunted-text); }
+.haunted-whiteboard .PltInput > .Team .Darker .Number:not(.OnTrack),
+.haunted-whiteboard .PltInput > .Team .Darker .Penalty,
+.haunted-whiteboard .PltInput > .Team .Darker .Total { background-color: #12283a; }
+.haunted-whiteboard .PltInput > .Team .OnTrack { color: #091b0d; }
+.haunted-whiteboard .PltInput > .Team.Team [Penalty='0'] { background-color: #1a3a46; }
+/* Preserve the whiteboard's serving/unserved and foul-out warning meanings. */
+.haunted-whiteboard .PltInput > .Team [warn='1'] .ShowWarn { background-color: #ffff00; color: #000; }
+.haunted-whiteboard .PltInput > .Team [warn='2'] .ShowWarn { background-color: #ff9010; color: #000; }
+.haunted-whiteboard .PltInput > .Team [warn='3'] .ShowWarn { background-color: #ff2828; color: #fff; }
+.haunted-whiteboard .PltInput > .Team .Skater .Penalty.Serving { background-color: #70ff70; color: #091b0d; }
+.haunted-whiteboard .PltInput > .Team .Skater .Penalty.Unserved { background-color: #0ee; color: #000; }
+/* Penalty clocks: decorate the frame; keep urgency colors and explicit instructions. */
+.haunted-clocks #List { margin: 0; }
+.haunted-clocks #PenaltyList .Trip:not(.sbHide) {
+  padding: 12px; grid-template-columns: 1.6fr .8fr .8fr 1.2fr; align-items: center;
+  gap: 12px; border-top: 2px solid #2f6a6a;
+}
+.haunted-clocks #PenaltyList .Trip:not(.Stand):not(.Done):not(.Old) { background-color: #a8560f; color: #d2f0e6; }
+.haunted-clocks #PenaltyList .Trip.Stand:not(.Done) { background-color: #ffff00; color: #000; }
+.haunted-clocks #PenaltyList .Trip.Done:not(.Old) { background-color: #6fdf6f; color: #000; }
+.haunted-clocks #PenaltyList .Trip .sbVeryImportant { font-size: clamp(26px, 3vw, 46px); font-weight: bold; overflow-wrap: anywhere; }
+.haunted-clocks #PenaltyList .Trip .Instruction { text-transform: uppercase; }
+.haunted-clocks #PenaltyList .Trip .sbClock { font-size: clamp(56px, 8vw, 110px); font-weight: bold; line-height: 1; }
+.haunted-clocks #PenaltyList .Trip .sbImportant { font-size: clamp(22px, 2.5vw, 38px); }
+.haunted-clocks #PenaltyList .Trip [warn='1'] { background-color: #ffff00; color: #000; }
+.haunted-clocks #PenaltyList .Trip [warn='2'] { background-color: #ff9010; color: #000; }
+.haunted-clocks #PenaltyList .Trip [warn='3'] { background-color: #ff2828; color: #fff; }
+.haunted-clocks #PenaltyList .Trip:not(.Stand):not(.Done):not(.Old) [warn='3'] { background-color: #fff; color: #000; }
+@media (max-width: 700px) {
+  .haunted-roster #RosterTab .sbSegmentGroup,
+  .haunted-whiteboard body.sbSegmentGroup { flex-direction: column; }
+  .haunted-roster #RosterTab .sbSegment,
+  .haunted-whiteboard body > div { width: 100%; }
+  .haunted-clocks #PenaltyList .Trip:not(.sbHide) { grid-template-columns: 1.4fr .7fr .7fr 1fr; gap: 6px; padding: 8px; }
+  .haunted-clocks #PenaltyList .Trip .sbVeryImportant,
+  .haunted-clocks #PenaltyList .Trip .sbImportant { font-size: 20px; }
+  .haunted-clocks #PenaltyList .Trip .sbClock { font-size: 48px; }
+}
+.haunted-roster #RosterTab .Skaters col.RosterNumber { width: 18%; }
+.haunted-roster #RosterTab .Skaters col.Name { width: 43%; }
+.haunted-roster #RosterTab .Skaters col.Pronouns { width: 19%; }
+.haunted-roster #RosterTab .Skaters col.Flags { width: 20%; }
+.haunted-roster #RosterTab .Skaters td { padding: 3px 5px; }
+.haunted-roster #RosterTab .Skaters #skaterCount { white-space: nowrap; font-size: 14px; }
+.haunted-roster #RosterTab .Skaters th:nth-child(5):empty { display: none; }
+.haunted-roster #RosterTab .Names tr:has(.Value:empty) { display: none; }
+.haunted-whiteboard .PltInput > .Team .Captain .Number::before { font-size: 10px; top: 1px; left: 3px; }
+.haunted-whiteboard .PltInput > .Team.Team.Team [Penalty='0'] { background-color: #1a3a46; }
+.haunted-whiteboard .PltInput > .Team .Penalty:not([Penalty='0']) { width: 7.7778%; }
+.haunted-whiteboard .PltInput > .Team [Penalty='0'],
+.haunted-whiteboard .PltInput > .Team thead td.sbShowOnPt { width: 8%; }
+.haunted-whiteboard .PltInput > .Team thead td.AutoFit { font-size: clamp(14px, 1.1vw, 20px); }
+.haunted-whiteboard .PltInput > .Team thead td.AutoFit * { font-size: inherit !important; }
+.haunted-whiteboard .PltInput > .Team thead td { vertical-align: middle; text-align: center; }
+.haunted-whiteboard .PltInput > .Team thead td.AutoFit > div { height: auto !important; margin: 0 !important; display: flex; align-items: center; justify-content: center; min-height: 100%; }

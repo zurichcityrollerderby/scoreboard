@@ -20,3 +20,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Upload Halloween theme
+        uses: actions/upload-artifact@v7
+        with:
+          path: build/distributions/scoreboard-halloween-theme.zip
+          archive: false
+          if-no-files-found: error

@@ -105,6 +105,11 @@ application {
         into("html")
         includeEmptyDirs = true
     }
+    // Bundle the shipped theme entry while keeping uploaded custom themes excluded.
+    applicationDistribution.from("html/themes/custom") {
+        include("Halloween.js")
+        into("html/themes/custom")
+    }
     applicationDistribution.from("config") {
         include("**/*")
         exclude("**/.gitignore", "autosave/**/*")
@@ -281,6 +286,21 @@ val nativeInstallerVersion = installerVersion.map { value ->
 }
 
 
+val halloweenThemeZip by tasks.registering(Zip::class) {
+    group = "distribution"
+    description = "Packages only the Halloween theme for an existing Scoreboard installation."
+    archiveFileName.set("scoreboard-halloween-theme.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+    from(".") {
+        include("html/themes/custom/Halloween.js", "html/views/halloween/**")
+    }
+    includeEmptyDirs = false
+}
+
+tasks.assemble {
+    dependsOn(halloweenThemeZip)
+}
+
 val containerDistZip by tasks.registering(Zip::class) {
     dependsOn(tasks.installDist)
     archiveFileName.set("scoreboard-container.zip")
@@ -318,7 +338,7 @@ jreleaser {
 
         inceptionYear = "2008"
         authors = listOf("Mr Temper", "The CRG developers")
-        copyright = "2008-2012 Mr Temper, since 2012 The CRG developers"
+        copyright = "2008-2012 Mr Temper, since 2012 The CRG developers, 2026 Zurich City Roller Derby Stream Team"
         license = "Apache-2.0-or-GPL-3.0-or-later"
 
         links {

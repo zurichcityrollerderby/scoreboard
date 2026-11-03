@@ -10,7 +10,7 @@
     document.documentElement.style.setProperty('--haunted-background', '#00ff00');
   }
   if (_getUrlParam('venue') === 'true') {
-    document.documentElement.style.setProperty('--haunted-panel', 'linear-gradient(135deg,#0d1b2b,#070c17)');
+    document.documentElement.style.setProperty('--haunted-panel', 'linear-gradient(135deg,#060d16,#02050b)');
   }
   if (_getUrlParam('motion') === 'off') {
     document.documentElement.style.setProperty('--haunted-motion', 'paused');
@@ -54,12 +54,12 @@
     function render() {
       var active = running('Jam') ? 'Jam' : running('Timeout') ? 'Timeout' : running('Lineup') ? 'Lineup' : running('Intermission') ? 'Intermission' : 'NoClock';
       var interNumber = value('ScoreBoard.CurrentGame.Clock(Intermission).Number');
-      var final = isTrue(value('ScoreBoard.CurrentGame.OfficialScore')) || (Number(interNumber) > 0 && Number(interNumber) === Number(value('ScoreBoard.CurrentGame.Rule(Period.Number)')));
       if (isTrue(value('ScoreBoard.CurrentGame.InJam'))) active = 'Jam';
       if (running('Lineup') && running('Timeout')) {
         var afterTimeout = value('ScoreBoard.Settings.Setting(ScoreBoard.' + view + '_ClockAfterTimeout)');
         active = afterTimeout === 'Timeout' ? 'Timeout' : 'Lineup';
       }
+      var final = isTrue(value('ScoreBoard.CurrentGame.OfficialScore')) || (active === 'Intermission' && Number(interNumber) > 0 && Number(interNumber) === Number(value('ScoreBoard.CurrentGame.Rule(Period.Number)')));
       if (mode === 'scoreboard') {
         document.getElementById('scoreboard').hidden = active === 'Intermission' || final;
         document.getElementById('intermission').hidden = !(active === 'Intermission' || final);
@@ -84,10 +84,20 @@
         if (cards[index]) {
           text('h2', name, cards[index]);
           text('.board-score', score, cards[index]);
-          text('.board-detail b', value(path + '.JamScore') || '0', cards[index]);
+          var jamPoints = Number(value(path + '.JamScore')) || 0;
+          text('.board-jam-points b', (jamPoints >= 0 ? '+' : '') + jamPoints, cards[index]);
           text('.board-kicker', id === 1 ? 'HOME' : 'AWAY', cards[index]);
-          text('.board-resources b', reviews + (isTrue(value(path + '.RetainedOfficialReview')) ? '*' : ''), cards[index]);
-          cards[index].querySelector('.board-resources > span:last-child').classList.toggle('active-timeout', active === 'Timeout' && String(value('ScoreBoard.CurrentGame.TimeoutOwner') || '').slice(-1) === String(id) && isTrue(value('ScoreBoard.CurrentGame.OfficialReview')));
+          var reviewPips = cards[index].querySelector('.review-pips');
+          var reviewSlots = Math.max(1, Number(value('ScoreBoard.CurrentGame.Rule(Team.OfficialReviews)')) || 0, reviews);
+          while (reviewPips.children.length < reviewSlots) reviewPips.appendChild(document.createElement('i'));
+          while (reviewPips.children.length > reviewSlots) reviewPips.lastChild.remove();
+          var retained = isTrue(value(path + '.RetainedOfficialReview'));
+          reviewPips.setAttribute('aria-label', reviews + ' reviews remaining' + (retained ? ', retained review' : ''));
+          reviewPips.title = reviews + ' reviews remaining' + (retained ? ', retained review' : '');
+          Array.from(reviewPips.children).forEach(function (pip, n) {
+            pip.className = 'review-pip' + (n >= reviews ? ' empty' : '') + (retained && n < reviews ? ' retained' : '');
+            pip.classList.toggle('active-timeout', isTrue(value(path + '.InOfficialReview')) && n === Math.min(reviews, reviewSlots - 1));
+          });
           var leadLabel = cards[index].querySelector('.lead');
           if (leadLabel) { leadLabel.hidden = !marker; leadLabel.textContent = marker; }
         }
@@ -101,7 +111,7 @@
           var review = indicator.querySelector('.review');
           review.classList.toggle('empty', reviews === 0);
           review.classList.toggle('retained', isTrue(value(path + '.RetainedOfficialReview')));
-          review.classList.toggle('active-timeout', active === 'Timeout' && String(value('ScoreBoard.CurrentGame.TimeoutOwner') || '').slice(-1) === String(id) && isTrue(value('ScoreBoard.CurrentGame.OfficialReview')));
+          review.classList.toggle('active-timeout', isTrue(value(path + '.InOfficialReview')));
           var label = indicator.querySelector('.lead');
           if (label) { label.hidden = !compactMarker; label.textContent = compactMarker; }
         }
@@ -109,7 +119,7 @@
           if (!root) return;
           all('.pip', root).forEach(function (pip, n) {
             pip.classList.toggle('empty', n >= timeouts);
-            pip.classList.toggle('active-timeout', active === 'Timeout' && String(value('ScoreBoard.CurrentGame.TimeoutOwner') || '').slice(-1) === String(id) && n === timeouts && !isTrue(value('ScoreBoard.CurrentGame.OfficialReview')));
+            pip.classList.toggle('active-timeout', isTrue(value(path + '.InTimeout')) && n === timeouts);
           });
         });
         var inter = document.getElementById('intermission');
@@ -138,12 +148,17 @@
         element.hidden = !tournament && !locationLabel;
       });
       // Both teams need a live lead label; the original away mockup omitted one.
-      text('.board-title > span:last-child', (isTrue(value('ScoreBoard.CurrentGame.InOvertime')) ? 'OVERTIME' : 'PERIOD ' + value('ScoreBoard.CurrentGame.Clock(Period).Number')));
+      text('.board-current-jam span,.board-jam-number .jam-number', value('ScoreBoard.CurrentGame.Clock(Jam).Number') || '0');
+      text('.board-jam-number .period-number', value('ScoreBoard.CurrentGame.Clock(Period).Number') || '0');
+      text('.board-jam-number .period-label', isTrue(value('ScoreBoard.CurrentGame.InOvertime')) ? 'OVERTIME' : 'PERIOD');
       var mainClock = all('.board-clock');
       if (mainClock.length) {
-        text('.board-kicker', 'PERIOD ' + value('ScoreBoard.CurrentGame.Clock(Period).Number'), mainClock[0]);
+        var timeoutOwner = value('ScoreBoard.CurrentGame.TimeoutOwner');
+        var timeoutLabel = timeoutOwner === 'O' ? 'OFFICIAL TIMEOUT' : timeoutOwner ? (isTrue(value('ScoreBoard.CurrentGame.OfficialReview')) ? 'OFFICIAL REVIEW' : 'TEAM TIMEOUT') : 'TIMEOUT';
+        mainClock[1].classList.toggle('timeout-inverted', active === 'Timeout' && !!timeoutOwner);
+        text('.board-kicker', 'PERIOD', mainClock[0]);
         text('strong', clockTime('Period'), mainClock[0]);
-        mainClock[1].querySelector('.board-kicker').textContent = (active === 'NoClock' ? 'COMING UP' : active.toUpperCase()) + (active === 'Jam' ? ' ' + value('ScoreBoard.CurrentGame.Clock(Jam).Number') : '');
+        mainClock[1].querySelector('.board-kicker').textContent = (active === 'Timeout' ? timeoutLabel : active === 'NoClock' ? 'COMING UP' : active.toUpperCase()) + (active === 'Jam' ? ' ' + value('ScoreBoard.CurrentGame.Clock(Jam).Number') : '');
         text('strong', active === 'NoClock' ? '—' : clockTime(active), mainClock[1]);
         text('.board-kicker:last-child', active === 'NoClock' ? 'BETWEEN JAMS' : active.toUpperCase() + (running(active) ? ' IN PROGRESS' : ' STOPPED'), mainClock[1]);
       }
@@ -170,14 +185,14 @@
     var game = 'ScoreBoard.CurrentGame';
     var paths = ['InJam', 'OfficialScore', 'ClockDuringFinalScore', 'InOvertime', 'TimeoutOwner', 'OfficialReview', 'Rule(Period.Number)', 'EventInfo(Tournament)', 'EventInfo(Venue)', 'EventInfo(City)', 'EventInfo(State)'].map(function (field) { return game + '.' + field; });
     [1, 2].forEach(function (id) {
-      ['Name', 'AlternateName(' + nameContext + ')', 'Score', 'JamScore', 'DisplayLead', 'StarPass', 'Lost', 'Timeouts', 'OfficialReviews', 'RetainedOfficialReview'].forEach(function (field) {
+      ['Name', 'AlternateName(' + nameContext + ')', 'Score', 'JamScore', 'DisplayLead', 'StarPass', 'Lost', 'Timeouts', 'InTimeout', 'InOfficialReview', 'OfficialReviews', 'RetainedOfficialReview'].forEach(function (field) {
         paths.push(game + '.Team(' + id + ').' + field);
       });
     });
     ['Period', 'Jam', 'Lineup', 'Timeout', 'Intermission'].forEach(function (clock) {
       ['Running', 'Time', 'Number', 'Direction'].forEach(function (field) { paths.push(game + '.Clock(' + clock + ').' + field); });
     });
-    paths.push('ScoreBoard.Settings.Setting(ScoreBoard.' + view + '_SwapTeams)', 'ScoreBoard.Settings.Setting(ScoreBoard.' + view + '_ClockAfterTimeout)', 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.*)');
+    paths.push(game + '.Rule(Team.OfficialReviews)', 'ScoreBoard.Settings.Setting(ScoreBoard.' + view + '_SwapTeams)', 'ScoreBoard.Settings.Setting(ScoreBoard.' + view + '_ClockAfterTimeout)', 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.*)');
     WS.Register(paths, { triggerBatchFunc: schedule });
     window.addEventListener('resize', schedule);
 
